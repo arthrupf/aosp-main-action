@@ -1,0 +1,39 @@
+name: AOSP GSI Build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Instalar dependências
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            openjdk-11-jdk git-core gnupg flex bison gperf build-essential \
+            zip curl zlib1g-dev gcc-multilib g++-multilib libc6-dev-i386 \
+            lib32ncurses5-dev x11proto-core-dev libx11-dev lib32z1-dev \
+            libgl1-mesa-dev libxml2-utils xsltproc unzip python3
+
+      - name: Inicializar repo AOSP
+        run: |
+          mkdir ~/aosp && cd ~/aosp
+          repo init -u https://android.googlesource.com/platform/manifest -b main
+          repo sync -j$(nproc --all)
+
+      - name: Configurar build GSI
+        run: |
+          source build/envsetup.sh
+          lunch aosp_arm64-ab-userdebug
+          make -j$(nproc --all) systemimage
+
+      - name: Upload artefatos
+        uses: actions/upload-artifact@v3
+        with:
+          name: AOSP-GSI
+          path: out/target/product/*/system.img
