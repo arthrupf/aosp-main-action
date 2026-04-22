@@ -33,7 +33,7 @@ jobs:
           make -j$(nproc --all) systemimage
 
       - name: Upload artefatos
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: AOSP-GSI
           path: out/target/product/*/system.img
